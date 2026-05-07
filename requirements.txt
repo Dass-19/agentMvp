@@ -1,0 +1,22 @@
+# ============================================================
+#  Dependencias - MVP RAG (Reto 3)
+# ============================================================
+
+# Base de datos vectorial
+supabase>=2.4.0
+
+# Variables de entorno
+python-dotenv>=1.0.0
+
+# LangChain / LangGraph
+langchain-community>=0.2.0
+langgraph>=0.1.0
+
+# Hugging Face
+huggingface_hub>=0.23.0
+
+# Embeddings locales (no consume cuota de API)
+sentence-transformers>=3.0.0
+
+# Dependencia transitiva - aceleración numérica
+numpy>=1.26.0
