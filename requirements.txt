@@ -1,22 +1,23 @@
 # ============================================================
-#  Dependencias - MVP RAG (Reto 3)
+#  Dependencias
 # ============================================================
-
-# Base de datos vectorial
+ 
+# API server
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+ 
+# Supabase
 supabase>=2.4.0
-
+ 
 # Variables de entorno
 python-dotenv>=1.0.0
-
-# LangChain / LangGraph
-langchain-community>=0.2.0
+ 
+# LangGraph
 langgraph>=0.1.0
-
+ 
 # Hugging Face
 huggingface_hub>=0.23.0
-
-# Embeddings locales (no consume cuota de API)
+ 
+# Embeddings locales — Qwen3-Embedding-0.6B
 sentence-transformers>=3.0.0
-
-# Dependencia transitiva - aceleración numérica
-numpy>=1.26.0
+torch>=2.2.0

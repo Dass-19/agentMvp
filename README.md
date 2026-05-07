@@ -1,6 +1,6 @@
-# 🏥 MVP RAG por Consola — Reto 3
+# 🏥 MVP RAG Backend — Reto 3
 
-> **Flujo validado:** Usuario → LangGraph → Supabase (pgvector) → Hugging Face → Consola
+> **Flujo validado:** Usuario/Front → API (/ask) → LangGraph → Supabase (pgvector) → Hugging Face → Respuesta HTML
 
 ---
 
@@ -8,7 +8,7 @@
 
 ```
 ┌─────────────┐     pregunta      ┌─────────────────────────────────────┐
-│   Consola   │ ─────────────────▶│           LangGraph Graph           │
+│  Front/API  │ ─────────────────▶│           LangGraph Graph           │
 │  (usuario)  │                   │                                     │
 └─────────────┘                   │  ┌──────────────────────────────┐   │
        ▲                          │  │  Nodo 1: retrieve_info       │   │
@@ -31,11 +31,21 @@
 ```
 rag_mvp/
 ├── .env.example        ← Plantilla de variables de entorno
+├── .env                ← Credenciales (ignorado por git)
 ├── requirements.txt    ← Dependencias Python
-├── supabase_setup.sql  ← Script SQL (ejecutar en Supabase Editor)
-├── populate_db.py      ← Poblar Supabase con datos de prueba
-├── test_retriever.py   ← Test aislado del Retriever
-└── main.py             ← Agente RAG completo (LangGraph)
+├── api.py              ← Servidor FastAPI (/ask, /health)
+├── config/             ← Configuración centralizada
+│   └── config.py
+├── db/
+│   ├── supabase_setup.sql  ← Schema SQL para Supabase
+│   └── populate_db.py      ← Poblar BD con datos de prueba
+├── scripts/            ← Núcleo del agente RAG
+│   ├── graph.py        ← Definición del Grafo LangGraph
+│   ├── retriever.py   ← Búsqueda vectorial (Supabase + Qwen)
+│   └── generator.py   ← Generación de respuestas (HF Inference)
+├── test/
+│   ├── console.py     ← Consola interactiva
+│   └── test_retriever.py  ← Test aislado del retriever
 ```
 
 ---
@@ -57,23 +67,23 @@ cp .env.example .env
 ```
 
 Obtén tus credenciales en:
-- **Supabase**: `https://supabase.com/dashboard` → Settings → API
+- **Supabase**: `https://supabase.com/dashboard` → Settings → API (Secret key)
 - **Hugging Face**: `https://huggingface.co/settings/tokens` → New token (Read)
 
 ### 3. Configurar Supabase
 
-Abre el **SQL Editor** en tu proyecto de Supabase y ejecuta todo el contenido de `supabase_setup.sql`.
+Abre el **SQL Editor** en tu proyecto de Supabase y ejecuta todo el contenido de `db/supabase_setup.sql`.
 
 Esto:
 - Habilita la extensión `pgvector`
-- Crea la tabla `doc_segments` con columna `vector(384)`
-- Crea el índice `ivfflat` para búsqueda eficiente
+- Crea la tabla `doc_segments` con columna `vector(1024)`
+- Crea el índice `hnsw` para búsqueda eficiente
 - Crea la función RPC `match_documents`
 
 ### 4. Poblar la base de datos
 
 ```bash
-python populate_db.py
+python -m db.populate_db
 ```
 
 Inserta 6 registros de prueba sobre hospitales de Guayaquil y cláusulas de póliza.
@@ -81,24 +91,64 @@ Inserta 6 registros de prueba sobre hospitales de Guayaquil y cláusulas de pól
 ### 5. Verificar el Retriever (test aislado)
 
 ```bash
-# Pregunta por defecto
-python test_retriever.py
-
-# Pregunta personalizada
-python test_retriever.py "¿Cuánto cubre el Hospital Kennedy en pediatría?"
+python -m test.test_retriever
 ```
-
-Deberías ver los documentos recuperados con su similitud coseno.
 
 ### 6. Ejecutar el agente completo
 
 ```bash
-# Modo interactivo (bucle de conversación)
-python main.py
+# Consola interactiva
+python -m test.console
 
-# Modo CLI (una sola pregunta)
-python main.py "¿Cuáles son las condiciones del copago en cirugías?"
+# O iniciar el servidor API
+uvicorn api:app
 ```
+
+---
+
+## API
+
+### POST /ask
+
+Body:
+
+```json
+{
+  "message": "...",
+  "history": [
+    {"role": "user", "content": "..."},
+    {"role": "assistant", "content": "..."}
+  ]
+}
+```
+
+Ejemplo válido:
+
+```json
+{
+  "message": "Tengo fiebre alta y dolor de cabeza, ¿qué hospital recomiendas?",
+  "history": [
+    {"role": "user", "content": "Hola"},
+    {"role": "assistant", "content": "<div>...</div>"}
+  ]
+}
+```
+
+Respuesta:
+
+```json
+{
+  "answer": "<div>...</div>",
+  "grounded": true,
+  "sources": [
+    {"fuente": "...", "categoria": "", "similarity": 0.42}
+  ]
+}
+```
+
+Notas:
+- `answer` siempre viene en HTML semántico.
+- El historial lo maneja el cliente (no hay sesiones en el backend).
 
 ---
 
@@ -106,9 +156,10 @@ python main.py "¿Cuáles son las condiciones del copago en cirugías?"
 
 | Paso | Comando | Qué valida |
 |------|---------|-----------|
-| 1 | `python populate_db.py` | Conexión a Supabase + embeddings |
-| 2 | `python test_retriever.py` | Búsqueda vectorial funciona |
-| 3 | `python main.py "pregunta"` | Flujo completo RAG end-to-end |
+| 1 | `python -m db.populate_db` | Conexión a Supabase + embeddings |
+| 2 | `python -m test.test_retriever` | Búsqueda vectorial funciona |
+| 3 | `python -m test.console` | Consola interactiva |
+| 4 | `python api.py` | Servidor API (Ctrl+C para detener) |
 
 ### Preguntas de prueba recomendadas
 
@@ -128,16 +179,16 @@ python main.py "¿Cuáles son las condiciones del copago en cirugías?"
 |-----------|---------|
 | Embeddings | `Qwen/Qwen3-Embedding-0.6B` (1024 dims, local, sin costo de API) |
 | LLM | `meta-llama/Meta-Llama-3-8B-Instruct` vía HF Inference API |
-| Threshold | `0.20` (similitud coseno mínima — ajustable en `main.py`) |
-| Resultados | `4` documentos máximos por consulta |
-| Temperatura | `0.2` (respuestas más deterministas y factuales) |
+| Threshold | `0.30` (similitud coseno mínima — ajustable en `config/config.py`) |
+| Resultados | `5` documentos máximos por consulta |
+| Temperatura | `0.25` (respuestas más deterministas y factuales) |
 
 ---
 
 ## Troubleshooting
 
 **`No se encontraron documentos relevantes`**
-→ Baja `MATCH_THRESHOLD` a `0.20` en `main.py` y `test_retriever.py`
+→ Baja `MATCH_THRESHOLD` a `0.20` en `config/config.py`
 
 **`Error 401` en Hugging Face**
 → Verifica que tu token tenga permisos de lectura y está en `.env`
@@ -146,4 +197,4 @@ python main.py "¿Cuáles son las condiciones del copago en cirugías?"
 → Ejecuta `supabase_setup.sql` en el SQL Editor de Supabase
 
 **Modelo de HF no disponible**
-→ Cambia `HF_MODEL` en `main.py` a `mistralai/Mistral-7B-Instruct-v0.3`
+→ Cambia `HF_MODEL` en `config/config.py` a `mistralai/Mistral-7B-Instruct-v0.3`
