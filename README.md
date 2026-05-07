@@ -126,7 +126,7 @@ python main.py "¿Cuáles son las condiciones del copago en cirugías?"
 
 | Componente | Detalle |
 |-----------|---------|
-| Embeddings | `Qwen/Qwen3-Embedding-0.6B` (384 dims, local, sin costo de API) |
+| Embeddings | `Qwen/Qwen3-Embedding-0.6B` (1024 dims, local, sin costo de API) |
 | LLM | `meta-llama/Meta-Llama-3-8B-Instruct` vía HF Inference API |
 | Threshold | `0.20` (similitud coseno mínima — ajustable en `main.py`) |
 | Resultados | `4` documentos máximos por consulta |
