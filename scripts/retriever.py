@@ -93,7 +93,7 @@ def build_context_block(documents: list[dict]) -> str:
     """
     if not documents:
         return ""
- 
+
     # Garantizar orden descendente por similitud
     docs_sorted = sorted(documents, key=lambda d: d.get("similarity", 0), reverse=True)
  
@@ -101,20 +101,39 @@ def build_context_block(documents: list[dict]) -> str:
     total_chars = 0
  
     for doc in docs_sorted:
-        fuente    = doc.get("metadata", {}).get("fuente", "Base de datos")
-        sim       = doc.get("similarity", 0.0)
-        content   = doc.get("content", "").strip()
-        entry     = f"[{fuente} | relevancia {sim:.0%}]\n{content}"
- 
-        if total_chars + len(entry) > config.MAX_CONTEXT_CHARS:
-            # Añadir lo que quepa del último documento antes de cortar
-            remaining = config.MAX_CONTEXT_CHARS - total_chars
-            if remaining > 120:   # solo si queda espacio significativo
-                parts.append(entry[:remaining] + "…")
-            break
- 
-        parts.append(entry)
-        total_chars += len(entry)
- 
+            metadata  = doc.get("metadata", {})
+            sim       = doc.get("similarity", 0.0)
+            content   = doc.get("content", "").strip()
+            
+            # 1. Extraer un nombre principal para la cabecera (intenta varias claves lógicas)
+            fuente_principal = metadata.get("fuente", metadata.get("hospital", metadata.get("seguro", "Base de datos")))
+            
+            # 2. Convertir el resto de la metadata en un string legible para el LLM
+            # Ejemplo: "Ciudad: Guayaquil | Red: A+ | Especialidades: ['Pediatría']"
+            meta_tags = []
+            for key, value in metadata.items():
+                # Omitimos las claves que ya usamos como fuente principal para no duplicar
+                if key not in ["fuente", "hospital"] or value != fuente_principal:
+                    meta_tags.append(f"{key.capitalize()}: {value}")
+            
+            meta_str = " | ".join(meta_tags)
+            
+            # 3. Construir la entrada completa
+            if meta_str:
+                entry = f"[{fuente_principal} | Relevancia: {sim:.1%}]\n[Atributos: {meta_str}]\n{content}"
+            else:
+                entry = f"[{fuente_principal} | Relevancia: {sim:.1%}]\n{content}"
+    
+            if total_chars + len(entry) > config.MAX_CONTEXT_CHARS:
+                # Añadir lo que quepa del último documento antes de cortar
+                remaining = config.MAX_CONTEXT_CHARS - total_chars
+                if remaining > 120:   # solo si queda espacio significativo
+                    parts.append(entry[:remaining] + "…")
+                break
+    
+            parts.append(entry)
+            total_chars += len(entry)
+    
     return "\n\n---\n\n".join(parts)
- 
+
+
