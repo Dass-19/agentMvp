@@ -81,10 +81,7 @@ Body:
 ```json
 {
   "message": "...",
-  "history": [
-    {"role": "user", "content": "..."},
-    {"role": "assistant", "content": "..."}
-  ]
+  "session_id": "..."
 }
 ```
 
@@ -93,10 +90,7 @@ Ejemplo válido:
 ```json
 {
   "message": "Tengo fiebre alta y dolor de cabeza, ¿qué hospital recomiendas?",
-  "history": [
-    {"role": "user", "content": "Hola"},
-    {"role": "assistant", "content": "<div>...</div>"}
-  ]
+  "session_id": "user-123"
 }
 ```
 
@@ -114,7 +108,7 @@ Respuesta:
 
 Notas:
 - `answer` siempre viene en HTML semántico.
-- El historial lo maneja el cliente (no hay sesiones en el backend).
+- El historial lo maneja el backend por `session_id`.
 
 ---
 
@@ -143,4 +137,5 @@ Comandos especiales durante la sesión:
 
 - El retriever usa `normalize_embeddings=True` (similitud coseno)
 - El grounding check verifica overlap léxico entre respuesta y contexto
-- No hay manejo de sesiones en el backend
+- El historial se maneja en backend por `session_id`
+- La base de conocimientos incluye más ciudades, hospitales y reglas de seguros

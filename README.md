@@ -13,9 +13,9 @@
 └─────────────┘                   │  ┌──────────────────────────────┐   │
        ▲                          │  │  Nodo 1: retrieve_info       │   │
        │                          │  │  · Embedding local (HF STF)  │   │
-       │  respuesta                │  │  · match_documents → Supabase│   │
+       │  respuesta(HTML)         │  │  · match_documents → Supabase│   │
        └──────────────────────────│  └──────────────┬───────────────┘   │
-                                  │                 │ contexto           │
+                                  │                 │ contexto          │
                                   │  ┌──────────────▼───────────────┐   │
                                   │  │  Nodo 2: generate_answer     │   │
                                   │  │  · System Prompt + Contexto  │   │
@@ -33,7 +33,7 @@ rag_mvp/
 ├── .env.example        ← Plantilla de variables de entorno
 ├── .env                ← Credenciales (ignorado por git)
 ├── requirements.txt    ← Dependencias Python
-├── api.py              ← Servidor FastAPI (/ask, /health)
+├── api.py              ← Servidor FastAPI (/ask, /health, /session/{session_id})
 ├── config/             ← Configuración centralizada
 │   └── config.py
 ├── db/
@@ -86,7 +86,7 @@ Esto:
 python -m db.populate_db
 ```
 
-Inserta 6 registros de prueba sobre hospitales de Guayaquil y cláusulas de póliza.
+Inserta registros de prueba con ciudades, hospitales y reglas de seguros.
 
 ### 5. Verificar el Retriever (test aislado)
 
@@ -115,10 +115,7 @@ Body:
 ```json
 {
   "message": "...",
-  "history": [
-    {"role": "user", "content": "..."},
-    {"role": "assistant", "content": "..."}
-  ]
+  "session_id": "..."
 }
 ```
 
@@ -127,10 +124,7 @@ Ejemplo válido:
 ```json
 {
   "message": "Tengo fiebre alta y dolor de cabeza, ¿qué hospital recomiendas?",
-  "history": [
-    {"role": "user", "content": "Hola"},
-    {"role": "assistant", "content": "<div>...</div>"}
-  ]
+  "session_id": "user-123"
 }
 ```
 
@@ -148,7 +142,7 @@ Respuesta:
 
 Notas:
 - `answer` siempre viene en HTML semántico.
-- El historial lo maneja el cliente (no hay sesiones en el backend).
+- El historial lo maneja el backend por `session_id`.
 
 ---
 
@@ -163,12 +157,49 @@ Notas:
 
 ### Preguntas de prueba recomendadas
 
+Prueba 1 (BMI + Cuenca + Gasto):
 ```
-¿Cuál es la cobertura de pediatría en Hospital Kennedy?
-¿Tiene copago el parto normal en Clínica Alcívar?
-¿Qué necesito para atenderme en Hospital Luis Vernaza siendo afiliado IESS?
-¿Cuánto cubre la Póliza Premium Salud EC anualmente?
-¿Cuál es el porcentaje de copago en cirugías programadas?
+- "Hola, tengo 35 años, vivo en Cuenca y tengo seguro BMI. Llevo dos días con un dolor abdominal agudo y acidez. ¿A dónde puedo ir y cuánto me cuesta?"
+
+- Lo que debes esperar: Que derive a Gastroenterología y te compare el Hospital del Río (Nivel A) con la Clínica Paucarbamba (Nivel B), aplicando el copago fijo de $30 vs $15.
+
+```
+Prueba 2 (Saludsa + Guayaquil + Cardiología):
+```
+"Estoy en Guayaquil, tengo Saludsa. Siento una presión fuerte en el pecho y palpitaciones. ¿Qué opciones tengo?"
+
+Lo que debes esperar: Que derive a Cardiología y compare el Omnihospital/Kennedy (Nivel A+/A calculando el 20/25%) con el San Francisco (Nivel B, 15%).
+```
+
+Prueba 3 (Falta Edad y Seguro):
+```
+"Hola, mi hijo está volando en fiebre, ¿a qué hospital lo llevo en Quito?"
+
+Lo que debes esperar: El agente NO debe recomendar hospitales todavía. Debe preguntar la edad del hijo (para saber si aplica Pediatría/extensión) y con qué aseguradora cuentan.
+```
+Prueba 4 (Falta Síntoma Claro):
+```
+"Me siento fatal, quiero ir al médico en Guayaquil usando mi seguro de Saludsa."
+
+Lo que debes esperar: Debe preguntar por los síntomas específicos para poder hacer el triaje, ya que "me siento fatal" no mapea con ninguna especialidad.
+```
+Prueba 5 (Derivación IESS - Copago $0):
+```
+"Me acaban de dar una derivación del IESS para un tema de traumatología aquí en Quito. ¿Cuánto es el copago y a dónde voy?"
+
+Lo que debes esperar: Que identifique el convenio IESS, establezca el copago en $0 (¡crucial!) y sugiera el Hospital Vozandes o Clínica Pichincha.
+```
+Prueba 6 (Regla Estricta de Maternidad):
+```
+"Soy hombre, tengo BMI en Guayaquil y tengo un dolor agudo en la pelvis, ¿puedo ir a la Clínica Alcívar a que me revisen?"
+
+Lo que debes esperar: El agente debe notar la contradicción. La regla dice "Ginecología/Maternidad -> SOLO si el paciente es mujer". Debería sugerir Medicina General o Gastroenterología en otra clínica, o pedir más detalles.
+```
+Prueba 7 (Ciudad/Especialidad no cubierta):
+```
+"Estoy en Manta, tengo seguro Humana y necesito un dentista urgente, ¿qué me recomiendas?"
+
+Lo que debes esperar: El FALLBACK_RESPONSE literal o una disculpa indicando que no tiene información sobre Manta ni odontología en su red actual.
 ```
 
 ---
