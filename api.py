@@ -122,10 +122,10 @@ async def health() -> dict:
  
  
 # ── Helper ────────────────────────────────────────────────────────────────────
- 
+
 def _extract_sources(context_block: str) -> list[SourceInfo]:
     sources = []
-    pattern = re.compile(r"\[(.+?)\s*\|\s*relevancia\s*([\d.]+)%\]")
+    pattern = re.compile(r"(?i)\[(.+?)\s*\|\s*relevancia[:]?\s*([\d.]+)%\]")
     for match in pattern.finditer(context_block):
         sim = float(match.group(2)) / 100
         sources.append(SourceInfo(fuente=match.group(1).strip(), similarity=round(sim, 3)))
