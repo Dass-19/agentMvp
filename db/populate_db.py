@@ -15,95 +15,137 @@ from sentence_transformers import SentenceTransformer
 load_dotenv()
 
 # ---------------------------------------------------------------------------
-# Datos de prueba - hospitales de Guayaquil y cláusulas de póliza
+# Datos de prueba - hospitales / clausulas / seguros
 # ---------------------------------------------------------------------------
 KNOWLEDGE_BASE = [
-    # --- ESPECIALIDADES Y SÍNTOMAS ---
+    # --- 1. ESPECIALIDADES Y TRIAGE INICIAL (Lógica Global) ---
     {
         "content": (
-            "Guía de Síntomas y Especialidades: Para dolores abdominales agudos, indigestión o gastritis, "
-            "la especialidad correspondiente es Gastroenterología. Para fracturas, dolores articulares, "
-            "esguinces o lesiones óseas, se debe acudir a Traumatología. Dolores de pecho o palpitaciones "
-            "requieren Cardiología."
-            "PEDIATRÍA: Fiebre en niños, tos persistente, erupciones cutáneas (sarpullido), "
-            "falta de apetito en lactantes, controles de crecimiento y esquemas de vacunación. "
-            "MATERNIDAD Y GINECOLOGÍA: Control prenatal, ausencia de periodo (amenorrea), "
-            "dolor pélvico fuerte, ecografías obstétricas, asesoría en anticoncepción, "
-            "cambios hormonales o síntomas de menopausia."
+            "Guía de Especialidades: Dolores abdominales o gastritis -> Gastroenterología. "
+            "Fracturas o lesiones óseas -> Traumatología. Dolores de pecho o arritmias -> Cardiología. "
+            "Control prenatal o temas ginecológicos -> Ginecología y Obstetricia. "
+            "Niños menores de 18 años -> Pediatría (Obligastorio)."
         ),
-        "metadata": {"categoria": "mapeo_sintomas", "uso": "clasificacion_inicial"},
+        "metadata": {"categoria": "triage", "ambito": "general"}
     },
-    # --- REDES Y COPAGOS POR HOSPITAL ---
+
+    # --- 2. RED QUITO (Nivel A+, A y B) ---
     {
         "content": (
-            "Hospital Kennedy (Policentro y Samborondón): Pertenece a la Red Nivel A (Premium). "
-            "Especialidades destacadas: Pediatría y Cardiología. El copago para consultas externas con "
-            "especialistas es del 20%, con un valor mínimo de $25. Es la opción de mayor costo pero con "
-            "la red de especialistas más amplia."
+            "Hospital Metropolitano (Quito, Av. Mariana de Jesús): Nivel A+. Excelencia en alta complejidad. "
+            "Copago promedio con Saludsa/BMI: 20% a 30% ($45 mín). Especialidad destacada: Cardiología y Oncología."
         ),
-        "metadata": {"fuente": "Hospital Kennedy", "red": "Nivel A", "ciudad": "Guayaquil"},
+        "metadata": {"hospital": "Metropolitano", "ciudad": "Quito", "red": "A+", "especialidades": ["Cardiología", "Oncología"]}
     },
     {
         "content": (
-            "Hospital Clínica San Francisco: Red Preferente (Nivel B). Especialidad en Medicina General "
-            "y Traumatología. Copago fijo de $15 para consultas generales y 15% para especialistas. "
-            "Recomendado como opción económica para consultas ambulatorias y rayos X."
+            "Hospital Vozandes (Quito, Villalengua): Nivel A. Copago fijo promedio para especialistas: $25 - $30. "
+            "Reconocido por Medicina Interna y Traumatología. Convenio amplio con aseguradoras nacionales."
         ),
-        "metadata": {"fuente": "Clínica San Francisco", "red": "Nivel B", "ciudad": "Guayaquil"},
+        "metadata": {"hospital": "Vozandes", "ciudad": "Quito", "red": "A", "especialidades": ["Traumatología", "Medicina Interna"]}
     },
     {
         "content": (
-            "Clínica Alcívar: Centro especializado en Maternidad y Ginecología. El plan cubre el 100% "
-            "de controles prenatales. Para partos, el copago es de $0 si es natural y un deducible "
-            "fijo de $200 para cesáreas programadas en red preferente."
+            "Hospital de los Valles (Quito, Cumbayá): Nivel A+. Instalaciones premium y alta tecnología. "
+            "Copago promedio: 25% ($40 mín). Especialidades destacadas: Pediatría Neonatal y Cirugía Robótica."
         ),
-        "metadata": {"fuente": "Clínica Alcívar", "categoria": "maternidad", "ciudad": "Guayaquil"},
-    },
-    {
-    "content": (
-            "Omnihospital (Norte de Guayaquil): Red Nivel A+. Especializado en alta complejidad. "
-            "En Ginecología y Maternidad, ofrece tecnología de punta con un copago del 25% ($40 mínimo). "
-            "Para Pediatría, cuenta con emergencia 24/7 con copago de $30. Es la opción recomendada "
-            "para casos que requieran hospitalización tecnológica o cuidados intensivos."
-        ),
-        "metadata": {"fuente": "Omnihospital", "red": "Nivel A+", "ciudad": "Guayaquil"},
+        "metadata": {"hospital": "Hospital de los Valles", "ciudad": "Quito", "red": "A+", "especialidades": ["Pediatría", "Cirugía"]}
     },
     {
         "content": (
-            "Clínica Panamericana (Centro de Guayaquil): Red Nivel B. Excelente relación costo-beneficio. "
-            "Cubre Ginecología con copago fijo de $18 para consultas preventivas. En Pediatría, "
-            "las consultas ambulatorias tienen un copago del 15%. No cuenta con unidad de neonatología "
-            "de alta complejidad, pero es ideal para controles de rutina y consultas externas."
+            "Clínica Pichincha (Quito, Centro-Norte): Nivel B. Excelente relación costo-beneficio. "
+            "Copago fijo: $15 - $20. Especialidad destacada: Medicina General y Gastroenterología. "
+            "Ideal para consultas de primera línea y exámenes de rutina sin gastar de más."
         ),
-        "metadata": {"fuente": "Clínica Panamericana", "red": "Nivel B", "ciudad": "Guayaquil"},
+        "metadata": {"hospital": "Clínica Pichincha", "ciudad": "Quito", "red": "B", "especialidades": ["Medicina General", "Gastroenterología"]}
     },
-    # --- DETALLES DE PÓLIZA ---
+
+    # --- 3. RED GUAYAQUIL (Nivel A+, A y B) ---
     {
         "content": (
-            "Plan Salud Pro-Ecuador: Cobertura anual de $60,000. Deducible anual de $500. "
-            "Medicamentos en farmacias de red (Fybeca/SanaSana) tienen descuento del 70%. "
-            "Urgencias en hospitales de Red Nivel B no requieren pre-autorización."
+            "Omnihospital (Guayaquil, Av. Juan Tanca Marengo): Nivel A+. Copago especialista: $40 mínimo (25%). "
+            "Tecnología de punta en Ginecología y Cuidados Intensivos. Recomendado para casos críticos."
         ),
-        "metadata": {"fuente": "Póliza Pro-Ecuador", "categoria": "beneficios_generales"},
+        "metadata": {"hospital": "Omnihospital", "ciudad": "Guayaquil", "red": "A+", "especialidades": ["Ginecología", "UCI"]}
     },
     {
         "content": (
-            "Cláusula de Emergencias: En caso de accidente o dolor súbito e intenso, el copago de "
-            "emergencia en cualquier hospital de la red es del 10% del valor de la factura, "
-            "independientemente del nivel de la red (A o B)."
+            "Hospital Kennedy (Sedes Policentro/Samborondón): Nivel A. Copago especialista: $25 mínimo (20%). "
+            "Referente en Pediatría y Cardiología en Guayaquil."
         ),
-        "metadata": {"fuente": "Contrato Art. 15", "categoria": "emergencias"},
+        "metadata": {"hospital": "Kennedy", "ciudad": "Guayaquil", "red": "A", "especialidades": ["Pediatría", "Cardiología"]}
     },
-    # --- CLÁUSULAS DE SEGURO ---
     {
         "content": (
-            "Póliza Salud Pro-Ecuador: El copago se calcula sobre el valor negociado con el hospital. "
-            "Si el paciente elige un hospital de Red A+ teniendo disponible Red B para el mismo síntoma, "
-            "el seguro cubrirá solo hasta el monto de la Red B, y el paciente asumirá la diferencia (Gap)."
+            "Clínica Alcívar (Guayaquil, Sur): Nivel A. Referente nacional en Traumatología y Maternidad. "
+            "Copago promedio: 20% ($25 mín). Cuenta con la unidad de trauma más completa y rápida del sur de la ciudad."
         ),
-        "metadata": {"fuente": "Manual del Asegurado", "categoria": "clausula_gap"},
+        "metadata": {"hospital": "Clínica Alcívar", "ciudad": "Guayaquil", "red": "A", "especialidades": ["Traumatología", "Ginecología"]}
+    },
+    {
+        "content": (
+            "Hospital Clínica San Francisco (Guayaquil, Norte): Nivel B. Opción económica y de rápido acceso. "
+            "Copago fijo: $15 para consultas generales y especialistas básicos. Muy recomendado para "
+            "Medicina General y triaje inicial."
+        ),
+        "metadata": {"hospital": "San Francisco", "ciudad": "Guayaquil", "red": "B", "especialidades": ["Medicina General", "Gastroenterología"]}
+    },
+
+    # --- 4. RED CUENCA (Nivel A+ y A) ---
+    {
+        "content": (
+            "Hospital Santa Inés (Cuenca, Av. Daniel Córdova): Nivel A+. Líder en el Austro. "
+            "Copago estimado: 20% ($35 mín). Especialidades: Traumatología y Neurocirugía."
+        ),
+        "metadata": {"hospital": "Santa Inés", "ciudad": "Cuenca", "red": "A+", "especialidades": ["Traumatología", "Neurocirugía"]}
+    },
+    {
+        "content": (
+            "Hospital Monte Sinaí (Cuenca, Miguel Cordero): Nivel A. Copago fijo: $20 - $25. "
+            "Excelente red en Ginecología y Pediatría para la región sur."
+        ),
+        "metadata": {"hospital": "Monte Sinaí", "ciudad": "Cuenca", "red": "A", "especialidades": ["Ginecología", "Pediatría"]}
+    },
+    {
+        "content": (
+            "Hospital Universitario del Río (Cuenca, Autopista Cuenca-Azogues): Nivel A. "
+            "Infraestructura moderna y amplia. Copago promedio: 20% ($25 mín). Especialidades destacadas: Cardiología "
+            "y Gastroenterología."
+        ),
+        "metadata": {"hospital": "Hospital del Río", "ciudad": "Cuenca", "red": "A", "especialidades": ["Cardiología", "Gastroenterología"]}
+    },
+    {
+        "content": (
+            "Clínica Paucarbamba (Cuenca, Sector Estadio): Nivel B. Atención rápida y precios altamente accesibles. "
+            "Copago fijo: $15. Es la opción más solicitada para Pediatría preventiva y Medicina General en el centro de la ciudad."
+        ),
+        "metadata": {"hospital": "Clínica Paucarbamba", "ciudad": "Cuenca", "red": "B", "especialidades": ["Pediatría", "Medicina General"]}
+    },
+
+    # --- 5. PLANES DE SEGURO (Lógica de Negocio) ---
+    {
+        "content": (
+            "Plan Saludsa Pool/Elite: Cobertura en Red A+ al 80% (copago 20%). "
+            "En Red B, el copago baja al 15%. Incluye medicina al 70% en Fybeca."
+        ),
+        "metadata": {"seguro": "Saludsa", "tipo": "Privado"}
+    },
+    {
+        "content": (
+            "Plan BMI Igual/Infinite: Cobertura internacional y nacional. "
+            "Red A+ (Metropolitano/Omni) copago de $30 fijo en citas médicas. "
+            "Resto de clínicas nivel A: copago $15."
+        ),
+        "metadata": {"seguro": "BMI", "tipo": "Privado"}
+    },
+    {
+        "content": (
+            "Convenio IESS (Derivación): Si el paciente es derivado del IESS, el copago es $0. "
+            "Aplica solo en prestadores externos con convenio activo (ej: San Francisco en GYE, Vozandes en UIO)."
+        ),
+        "metadata": {"seguro": "IESS", "tipo": "Publico"}
     }
-    ]
+]
 
 # ---------------------------------------------------------------------------
 # Configuración
