@@ -1,0 +1,8 @@
+{
+  "actorSpecification": 1,
+  "name": "agentMvp",
+  "title": "Agent MVP FastAPI",
+  "version": "1.0",
+  "buildTag": "latest",
+  "dockerfile": "../Dockerfile"
+}
