@@ -13,8 +13,8 @@ load_dotenv()
  
  
 # ── Embeddings ───────────────────────────────────────────────────────────────
-EMBEDDING_MODEL      = "Qwen/Qwen3-Embedding-0.6B"
-EMBEDDING_DIMENSIONS = 1024          # debe coincidir con vector(1024) en Supabase
+EMBEDDING_MODEL      = "nomic-ai/nomic-embed-text-v1.5"
+EMBEDDING_DIMENSIONS = 768          # debe coincidir con vector(768) en Supabase
 EMBEDDING_BATCH_SIZE = 32            # cuántos textos encodear a la vez
  
 # ── Retriever ────────────────────────────────────────────────────────────────

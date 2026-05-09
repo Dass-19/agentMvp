@@ -150,7 +150,7 @@ KNOWLEDGE_BASE = [
 # ---------------------------------------------------------------------------
 # Configuración
 # ---------------------------------------------------------------------------
-EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-0.6B"   # 384 dimensiones, local y rápido
+EMBEDDING_MODEL = "nomic-ai/nomic-embed-text-v1.5"
 TABLE_NAME = "doc_segments"
 
 

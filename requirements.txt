@@ -10,7 +10,7 @@ uvicorn[standard]>=0.29.0
 supabase>=2.4.0
  
 # Variables de entorno
-python-dotenv>=1.0.0
+# python-dotenv>=1.0.0
  
 # LangGraph
 langgraph>=0.1.0

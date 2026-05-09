@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS doc_segments (
   id        BIGSERIAL PRIMARY KEY,
   content   TEXT        NOT NULL,
   metadata  JSONB       NOT NULL DEFAULT '{}',
-  embedding VECTOR(1024)           -- Qwen3-Embedding-0.6B: 1024 dims
+  embedding VECTOR(768)           -- Qwen3-Embedding-0.6B: 1024 dims
 );
  
 -- 3. Índice HNSW (mejor recall que ivfflat para datasets pequeños/medianos)
@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS doc_segments_embedding_hnsw_idx
  
 -- 4. Función RPC de búsqueda semántica
 CREATE OR REPLACE FUNCTION match_documents (
-  query_embedding  VECTOR(1024),
+  query_embedding  VECTOR(768),
   match_threshold  FLOAT,
   match_count      INT
 )
