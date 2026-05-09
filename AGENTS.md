@@ -55,7 +55,7 @@ mypy .
 
 | Componente | Modelo | Dimensiones |
 |------------|--------|-------------|
-| Embedding | `Qwen/Qwen3-Embedding-0.6B` | 1024 |
+| Embedding | `nomic-ai/nomic-embed-text-v1.5` | 768 |
 | LLM | `meta-llama/Meta-Llama-3-8B-Instruct` | — |
 
 ---

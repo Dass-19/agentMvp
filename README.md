@@ -30,22 +30,23 @@
 
 ```
 rag_mvp/
-├── .env.example        ← Plantilla de variables de entorno
-├── .env                ← Credenciales (ignorado por git)
-├── requirements.txt    ← Dependencias Python
-├── api.py              ← Servidor FastAPI (/ask, /health, /session/{session_id})
-├── config/             ← Configuración centralizada
+├── AGENTS.md            ← Guía para agentes IA
+├── Dockerfile           ← Imagen para despliegue de la API
+├── .env.example         ← Plantilla de variables de entorno
+├── requirements.txt     ← Dependencias Python
+├── api.py               ← Servidor FastAPI (/ask, /health, /session/{session_id})
+├── config/              ← Configuración centralizada
 │   └── config.py
 ├── db/
 │   ├── supabase_setup.sql  ← Schema SQL para Supabase
 │   └── populate_db.py      ← Poblar BD con datos de prueba
-├── scripts/            ← Núcleo del agente RAG
-│   ├── graph.py        ← Definición del Grafo LangGraph
-│   ├── retriever.py   ← Búsqueda vectorial (Supabase + Qwen)
-│   └── generator.py   ← Generación de respuestas (HF Inference)
-├── test/
-│   ├── console.py     ← Consola interactiva
-│   └── test_retriever.py  ← Test aislado del retriever
+├── scripts/             ← Núcleo del agente RAG
+│   ├── graph.py         ← Definición del Grafo LangGraph
+│   ├── retriever.py     ← Búsqueda vectorial (Supabase + embeddings)
+│   └── generator.py     ← Generación de respuestas (HF Inference)
+└── test/
+    ├── console.py       ← Consola interactiva
+    └── test_retriever.py  ← Test aislado del retriever
 ```
 
 ---
@@ -208,11 +209,11 @@ Lo que debes esperar: El FALLBACK_RESPONSE literal o una disculpa indicando que 
 
 | Componente | Detalle |
 |-----------|---------|
-| Embeddings | `Qwen/Qwen3-Embedding-0.6B` (1024 dims, local, sin costo de API) |
+| Embeddings | `nomic-ai/nomic-embed-text-v1.5` (768 dims, local, sin costo de API) |
 | LLM | `meta-llama/Meta-Llama-3-8B-Instruct` vía HF Inference API |
 | Threshold | `0.30` (similitud coseno mínima — ajustable en `config/config.py`) |
 | Resultados | `5` documentos máximos por consulta |
-| Temperatura | `0.25` (respuestas más deterministas y factuales) |
+| Temperatura | `0.1` (respuestas más deterministas y factuales) |
 
 ---
 

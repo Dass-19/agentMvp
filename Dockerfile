@@ -1,4 +1,7 @@
-FROM apify/actor-python:3.12
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /usr/src/app
 
@@ -7,4 +10,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . ./
 
-CMD ["python", "api.py"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "7860"]
