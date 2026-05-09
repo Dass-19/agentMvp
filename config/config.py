@@ -34,7 +34,7 @@ TEMPERATURE = 0.1                   # baja para respuestas más factuales
 GROUNDING_OVERLAP_THRESHOLD = 0.28   # ratio mínimo de overlap léxico para aprobar
 GROUNDING_MIN_WORD_LEN      = 6      # ignorar palabras cortas en el overlap
  
-# ── API server ────────────────────────────────────────────────────────────────
+# ── API server ──────────────────────────────────  ──────────────────────────────
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8000"))
  

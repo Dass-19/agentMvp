@@ -134,10 +134,10 @@ def _extract_sources(context_block: str) -> list[SourceInfo]:
  
 # ── Arranque directo ──────────────────────────────────────────────────────────
  
-if __name__ == "__main__":
-    uvicorn.run(
-        "api:app",
-        host=config.API_HOST,
-        port=config.API_PORT,
-        reload=True
-    )
+# if __name__ == "__main__":
+#     uvicorn.run(
+#         "api:app",
+#         host=config.API_HOST,
+#         port=config.API_PORT,
+#         reload=True
+#     )
