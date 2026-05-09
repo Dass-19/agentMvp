@@ -1,6 +1,4 @@
 """
-console.py
-==========
 Test interactivo por consola del agente RAG.
 Simula exactamente lo que haría el front-end llamando a /ask,
 pero corriendo el grafo directamente (sin levantar el servidor HTTP).

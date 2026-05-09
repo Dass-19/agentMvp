@@ -20,9 +20,7 @@ Flujo:
  
 from __future__ import annotations
 from typing import TypedDict
- 
 from langgraph.graph import StateGraph, END
- 
 from scripts import retriever, generator
  
  
@@ -108,4 +106,3 @@ def fresh_state(user_input: str, history: list[dict] | None = None) -> RAGState:
         response="",
         grounded=False,
     )
- 

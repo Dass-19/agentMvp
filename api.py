@@ -137,8 +137,8 @@ def _extract_sources(context_block: str) -> list[SourceInfo]:
 import os
 if __name__ == "__main__":
     uvicorn.run(
-       "api:app",
-        host="0.0.0.0",
-       port=int(os.environ.get("ACTOR_WEB_SERVER_PORT", "4321")),
-       reload=False
-   )
+        "api:app",
+        host=config.API_HOST,
+        port=config.API_PORT,
+        reload=True
+    )

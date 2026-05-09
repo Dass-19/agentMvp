@@ -10,10 +10,8 @@ Responsabilidades:
  
 from __future__ import annotations
 from functools import lru_cache
- 
 from supabase import create_client, Client
 from sentence_transformers import SentenceTransformer
- 
 from config import config
  
  
@@ -135,5 +133,3 @@ def build_context_block(documents: list[dict]) -> str:
             total_chars += len(entry)
     
     return "\n\n---\n\n".join(parts)
-
-

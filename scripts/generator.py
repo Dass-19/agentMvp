@@ -11,11 +11,10 @@ Responsabilidades:
 from __future__ import annotations
 import re
 from functools import lru_cache
- 
 from huggingface_hub import InferenceClient
- 
 from config import config
- 
+
+
 # ── System prompt ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """\
 Eres un Asesor de Seguros Médicos experto para la red de salud en Ecuador.
@@ -185,27 +184,27 @@ def is_grounded(response: str, context: str) -> bool:
     """
     if "?" in response or "¡Hola!" in response or "ayudarte" in response.lower():
         return True
+
     if not context:
         # Sin contexto recuperado, cualquier respuesta factual es potencialmente inventada
         return False
- 
+
     response_terms = _tokenize(response)
     if not response_terms:
         return True   # respuesta vacía o sin palabras largas — no hay qué chequear
- 
+
     context_terms  = _tokenize(context)
     overlap_ratio  = len(response_terms & context_terms) / len(response_terms)
- 
+
     return overlap_ratio >= config.GROUNDING_OVERLAP_THRESHOLD
- 
- 
+
+
 # ── Construcción del payload de mensajes ──────────────────────────────────────
- 
 def build_messages(
-    user_query:  str,
-    context:     str,
-    history:     list[dict],
-) -> list[dict]:
+        user_query:  str,
+        context:     str,
+        history:     list[dict]
+        ) -> list[dict]:
     """
     Construye la lista de mensajes para la API de chat.
  
@@ -242,10 +241,10 @@ def build_messages(
 # ── Función pública ───────────────────────────────────────────────────────────
  
 def generate(
-    user_query: str,
-    context:    str,
-    history:    list[dict],
-) -> tuple[str, bool]:
+        user_query: str,
+        context:    str,
+        history:    list[dict]
+        ) -> tuple[str, bool]:
     """
     Genera la respuesta del LLM y verifica su grounding.
  

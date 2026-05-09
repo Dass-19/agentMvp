@@ -1,6 +1,4 @@
 """
-test_retriever.py
-=================
 Script de prueba aislada del Retriever.
 Verifica que Supabase devuelve contexto relevante ANTES
 de ejecutar el grafo completo.
