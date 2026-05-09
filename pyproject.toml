@@ -11,3 +11,5 @@ dependencies = [
   "sentence-transformers>=3.0.0",
   "torch>=2.2.0"
 ]
+[tool.vercel]
+entrypoint = "api:app"
