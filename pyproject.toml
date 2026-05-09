@@ -1,0 +1,13 @@
+[project]
+name = "vercel-fastapi"
+version = "0.1.0"
+requires-python = "==3.10.*"
+dependencies = [
+  "fastapi>=0.111.0",
+  "uvicorn[standard]>=0.29.0",
+  "supabase>=2.4.0",
+  "langgraph>=0.1.0",
+  "huggingface_hub>=0.23.0",
+  "sentence-transformers>=3.0.0",
+  "torch>=2.2.0"
+]
