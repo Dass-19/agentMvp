@@ -11,6 +11,7 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from sentence_transformers import SentenceTransformer
+from config import config
 
 load_dotenv()
 
@@ -150,10 +151,6 @@ KNOWLEDGE_BASE = [
 # ---------------------------------------------------------------------------
 # Configuración
 # ---------------------------------------------------------------------------
-EMBEDDING_MODEL = "nomic-ai/nomic-embed-text-v1.5"
-TABLE_NAME = "doc_segments"
-
-
 def main() -> None:
     # Conexión a Supabase
     url: str = os.environ["SUPABASE_URL"]
@@ -163,11 +160,11 @@ def main() -> None:
     print(f"🔗 Conectado a Supabase: {url}")
 
     # Cargar modelo de embeddings
-    print(f"📦 Cargando modelo '{EMBEDDING_MODEL}'...")
-    model = SentenceTransformer(EMBEDDING_MODEL)
+    print(f"📦 Cargando modelo '{config.EMBEDDING_MODEL}'...")
+    model = SentenceTransformer(config.EMBEDDING_MODEL)
 
     # Insertar registros
-    print(f"\n📝 Insertando {len(KNOWLEDGE_BASE)} registros en '{TABLE_NAME}'...\n")
+    print(f"\n📝 Insertando {len(KNOWLEDGE_BASE)} registros en '{config.TABLE_NAME}'...\n")
     for i, item in enumerate(KNOWLEDGE_BASE, start=1):
         embedding: list[float] = model.encode(item["content"]).tolist()
         record = {
@@ -175,7 +172,7 @@ def main() -> None:
             "metadata":  item["metadata"],
             "embedding": embedding,
         }
-        response = supabase.table(TABLE_NAME).insert(record).execute()
+        response = supabase.table(config.TABLE_NAME).insert(record).execute()
         fuente = item["metadata"].get("fuente", "—")
         print(f"  [{i}/{len(KNOWLEDGE_BASE)}] ✅ Insertado: {fuente}")
 
